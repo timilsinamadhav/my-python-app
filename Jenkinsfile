@@ -16,6 +16,8 @@ pipeline {
         stage('Deploy') {
             steps {
                 echo 'Deploying....'
+		sh 'docker tag my-python-app:$JOB_BASE_NAME.$BUILD_ID timilsinamadhav/my-python-app:$JOB_BASE_NAME.$BUILD_ID'
+		sh 'docker push my-python-app:$JOB_BASE_NAME.$BUILD_ID'
             }
         }
     }
