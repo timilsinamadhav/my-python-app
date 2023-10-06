@@ -1,23 +1,33 @@
 pipeline {
+    environment {
+        registry = "timilsinamadhav/my-python-app"
+        registryCredentials = 'dockerhub_credentials'
+        dockerImage = ''
+    }
     agent any
 
     stages {
-        stage('Build') {
+        stage('Building Image') {
             steps {
-                echo 'Building..'
-		sh 'docker build -t my-python-app:$JOB_BASE_NAME.$BUILD_ID .'
+                script {
+                    dockerImage = docker.build registry + ":$JOB_BASE_NAME.$BUILD_ID"
+                }
             }
         }
-        stage('Test') {
+        }
+        stage('Push to DockerHub') {
             steps {
-                echo 'Testing..'
+                script {
+                    docker.withRegistry( '', registryCredential ) {
+                        dockerImage.push()
+                    }
+                }
             }
         }
-        stage('Deploy') {
+        stage('Cleaning Up') {
             steps {
-                echo 'Deploying....'
-		sh 'docker tag my-python-app:$JOB_BASE_NAME.$BUILD_ID timilsinamadhav/my-python-app:$JOB_BASE_NAME.$BUILD_ID'
-		sh 'docker push timilsinamadhav/my-python-app:$JOB_BASE_NAME.$BUILD_ID'
+                echo 'Clearing'
+                sh "docker rmi $registry:$JOB_BASE_NAME.$BUILD_ID"
             }
         }
     }
